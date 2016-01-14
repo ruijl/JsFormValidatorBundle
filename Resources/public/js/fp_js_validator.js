@@ -579,6 +579,22 @@ var FpJsFormValidator = new function () {
             for (var childName in element.children) {
                 value[childName] = this.getMappedValue(element.children[childName]);
             }
+
+        } else if (elementIsType(element, 'choice') && element.data.form) {
+            if (element.multiple) {
+                value = {};
+                for (var childName in element.children) {
+                    value[childName] = this.getMappedValue(element.children[childName]);
+                }
+            } else {
+                for (var childName in element.children) {
+                    if (element.children[childName].domNode.checked) {
+                        value = this.getMappedValue(element.children[childName]);
+                        break;
+                    }
+                }
+            }
+
         } else {
             value = this.getSpecifiedElementTypeValue(element);
         }
@@ -622,7 +638,12 @@ var FpJsFormValidator = new function () {
             var len = field.length;
             while (len--) {
                 if (field.options[len].selected) {
-                    value.push(field.options[len].value);
+                    if (element.multiple) {
+                        value.push(field.options[len].value);
+                    } else {
+                        value = field.options[len].value;
+                        break;
+                    }
                 }
             }
         } else {
