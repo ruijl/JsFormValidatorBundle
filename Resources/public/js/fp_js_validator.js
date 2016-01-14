@@ -375,6 +375,10 @@ var FpJsFormValidator = new function () {
     this.customizeMethods = new FpJsCustomizeMethods();
     this.constraintsCounter = 0;
 
+    function elementIsType(element, type) {
+        return element.type.indexOf(type) >= 0;
+    }
+
     //noinspection JSUnusedGlobalSymbols
     this.addModel = function (model, onLoad) {
         var self = this;
@@ -511,7 +515,7 @@ var FpJsFormValidator = new function () {
 
     this.checkParentCascadeOption = function (element) {
         var result = true;
-        if (element.parent && !element.parent.cascade && 'collection' != element.parent.type) {
+        if (element.parent && !element.parent.cascade && !elementIsType(element, 'collection')) {
             result = false;
         } else if (element.parent) {
             result = this.checkParentCascadeOption(element.parent);
@@ -569,7 +573,8 @@ var FpJsFormValidator = new function () {
 
         if (i && undefined === value) {
             value = this.getMappedValue(element);
-        } else if ('collection' == element.type) {
+
+        } else if (elementIsType(element, 'collection')) {
             value = {};
             for (var childName in element.children) {
                 value[childName] = this.getMappedValue(element.children[childName]);
@@ -609,7 +614,7 @@ var FpJsFormValidator = new function () {
         }
 
         var value;
-        if ('checkbox' == element.type || 'radio' == element.type) {
+        if (elementIsType(element, 'checkbox') || elementIsType(element, 'radio')) {
             value = element.domNode.checked;
         } else if ('select' === element.domNode.tagName.toLowerCase()) {
             value = [];
@@ -2190,16 +2195,16 @@ function SymfonyComponentFormExtensionCoreDataTransformerDateTimeToArrayTransfor
 
         if (value['year'] || value['month'] || value['day']) {
             result.push(this.formatDate(this.dateFormat, [
-                value['year']  ? value['year']  : '1970',
-                value['month'] ? this.twoDigits(value['month']) : '01',
-                value['day']   ? this.twoDigits(value['day']) : '01'
+                value['year']  !== undefined ? value['year']  : '1970',
+                value['month'] !== undefined ? this.twoDigits(value['month']) : '01',
+                value['day']   !== undefined ? this.twoDigits(value['day']) : '01'
             ]));
         }
         if (value['hour'] || value['minute'] || value['second']) {
             result.push(this.formatDate(this.timeFormat, [
-                value['hour']   ? this.twoDigits(value['hour'])   : '00',
-                value['minute'] ? this.twoDigits(value['minute']) : '00',
-                value['second'] ? this.twoDigits(value['second']) : '00'
+                value['hour']   !== undefined ? this.twoDigits(value['hour'])   : '00',
+                value['minute'] !== undefined ? this.twoDigits(value['minute']) : '00',
+                value['second'] !== undefined ? this.twoDigits(value['second']) : '00'
             ]));
         }
 
@@ -2207,7 +2212,7 @@ function SymfonyComponentFormExtensionCoreDataTransformerDateTimeToArrayTransfor
     };
 
     this.twoDigits = function(value) {
-        return ('0' + value).slice(-2);
+        return value === '' ? '' : ('0' + value).slice(-2);
     };
 
     this.formatDate = function(format, date) {
